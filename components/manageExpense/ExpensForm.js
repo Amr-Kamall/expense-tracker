@@ -4,109 +4,161 @@ import { useEffect, useState } from "react";
 import Button from "../ui/Button";
 import { useExpense } from "../../store/ExpenseContext";
 import { getFormattedDate } from "../../util/date";
+import { GlobalStyles } from "../../constants/styles";
 
-function ExpenseForm({ cancelHandler, selectedIndex }) {
+function ExpenseForm({ goBack, selectedIndex }) {
   const { handleAddExpense, expenses, setExpenses } = useExpense();
 
-  //   essential functions >>
+  // essential
   const [inputValues, setInputValues] = useState({
     amount: "",
     date: "",
     description: "",
   });
-
-  function inputChangeHandler(inputIdentefier, enteredValue) {
-    setInputValues((currentInpValues) => {
-      return { ...currentInpValues, [inputIdentefier]: enteredValue };
-    });
+  function inputChangeHandler(inputIdentifier, enteredValue) {
+    setInputValues((currentInputValues) => ({
+      ...currentInputValues,
+      [inputIdentifier]: enteredValue,
+    }));
   }
 
-  //updating
+  //   ------------------ validation -------------------
+  const [errors, setErrors] = useState({
+    amount: "",
+    date: "",
+    description: "",
+  });
+
+  function validateInputs() {
+    const validationErrors = {};
+
+    if (isNaN(+inputValues.amount) || +inputValues.amount <= 0) {
+      validationErrors.amount = "Please enter a valid amount greater than 0.";
+    }
+
+    if (
+      inputValues.date.trim().length === 0 ||
+      isNaN(new Date(inputValues.date).getTime())
+    ) {
+      validationErrors.date = "Please enter a valid date";
+    }
+
+    if (inputValues.description.trim().length === 0) {
+      validationErrors.description = "Description cannot be empty.";
+    }
+
+    setErrors(validationErrors);
+    return Object.keys(validationErrors).length === 0; //means that there is a value in this object
+  }
+
+  //   ------------------- updating ------------------------
   const selectedExpense = expenses[selectedIndex];
   const inUpdatedMood = !!selectedExpense;
-
-  console.log(inUpdatedMood); //get me false after i updated the expense item and click on it agian
 
   useEffect(() => {
     if (selectedExpense) {
       setInputValues({
-        amount: selectedExpense.amount.toString(), // Convert to string for TextInput
-        date: getFormattedDate(selectedExpense.date), // Format the date
-        description: selectedExpense.description, // Update description
+        amount: selectedExpense.amount.toString(),
+        date: getFormattedDate(selectedExpense.date),
+        description: selectedExpense.description,
       });
     }
   }, [selectedExpense]);
 
   function updateExpense() {
-    const newExpenses = [...expenses];
-    const newExpenseObj = {
+    if (!validateInputs()) {
+      return;
+    }
+
+    const updatedExpenses = [...expenses];
+    updatedExpenses[selectedIndex] = {
       amount: +inputValues.amount,
       date: new Date(inputValues.date),
       description: inputValues.description,
+      id: Date.now(),
     };
-    newExpenses[selectedIndex] = newExpenseObj;
-    setExpenses(newExpenses);
-    cancelHandler();
+
+    setExpenses(updatedExpenses);
+    goBack();
   }
 
-  //adding
+  //    -------------------------- adding -------------------------
   function confirmHandler() {
+    if (!validateInputs()) {
+      return;
+    }
+
     const newExpense = {
       amount: +inputValues.amount,
-      date: new Date(inputValues.date), //we should make it like an object
+      date: new Date(inputValues.date),
       description: inputValues.description,
       id: Date.now(),
     };
-    // handle add expense here with newExpense as parameter
+
     handleAddExpense(newExpense);
-    cancelHandler();
+    goBack();
   }
 
   return (
     <View style={styles.formContainer}>
       <Text style={styles.title}>Your Expense</Text>
       <View style={styles.rowInputs}>
-        <Input
-          style={styles.inputRow}
-          label="amount"
-          textInputConfig={{
-            keyboardType: "decimal-pad",
-            onChangeText: inputChangeHandler.bind(this, "amount"),
-            value: inputValues.amount,
-          }}
-        />
-        <Input
-          style={styles.inputRow}
-          label="date"
-          textInputConfig={{
-            placeholder: "YYYY-MM-DD",
-            maxLength: 10,
-            onChangeText: inputChangeHandler.bind(this, "date"),
-            value: inputValues.date,
-          }}
-        />
+        <View style={styles.inputWrapper}>
+          <Input
+            style={styles.inputRow}
+            label="Amount"
+            textInputConfig={{
+              keyboardType: "decimal-pad",
+              onChangeText: inputChangeHandler.bind(this, "amount"),
+              value: inputValues.amount,
+            }}
+          />
+          {errors.amount ? (
+            <Text style={styles.errorText}>{errors.amount}</Text>
+          ) : null}
+        </View>
+        <View style={styles.inputWrapper}>
+          <Input
+            style={styles.inputRow}
+            label="Date"
+            textInputConfig={{
+              placeholder: "YYYY-MM-DD",
+              maxLength: 10,
+              onChangeText: inputChangeHandler.bind(this, "date"),
+              value: inputValues.date,
+            }}
+          />
+          {errors.date ? (
+            <Text style={styles.errorText}>{errors.date}</Text>
+          ) : null}
+        </View>
       </View>
-      <Input
-        label="description"
-        textInputConfig={{
-          multiline: true,
-          value: inputValues.description,
-          onChangeText: inputChangeHandler.bind(this, "description"),
-        }}
-      />
+      <View>
+        <Input
+          label="Description"
+          textInputConfig={{
+            multiline: true,
+            onChangeText: inputChangeHandler.bind(this, "description"),
+            value: inputValues.description,
+          }}
+        />
+        {errors.description ? (
+          <Text style={styles.errorText}>{errors.description}</Text>
+        ) : null}
+      </View>
       <View style={styles.buttonContainer}>
         <Button
           additionalStyles={styles.additionalStyles}
           mode="flat"
-          onPress={cancelHandler}
+          onPress={goBack}
         >
-          cancel
+          Cancel
         </Button>
         <Button
           additionalStyles={styles.additionalStyles}
           onPress={inUpdatedMood ? updateExpense : confirmHandler}
         >
-          {inUpdatedMood ? "edit" : "add"}
+          {inUpdatedMood ? "Edit" : "Add"}
         </Button>
       </View>
     </View>
@@ -123,15 +175,16 @@ const styles = StyleSheet.create({
     fontSize: 22,
     textAlign: "center",
     color: "white",
-    fontWeight: 500,
+    fontWeight: "500",
     marginVertical: 20,
   },
   rowInputs: {
     flexDirection: "row",
     justifyContent: "center",
   },
-  inputRow: {
+  inputWrapper: {
     flex: 1,
+    marginBottom: 10,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -141,5 +194,10 @@ const styles = StyleSheet.create({
   additionalStyles: {
     minWidth: 120,
     marginHorizontal: 10,
+  },
+  errorText: {
+    color: GlobalStyles.colors.error500,
+    fontSize: 12,
+    marginLeft:8,
   },
 });

@@ -1,41 +1,17 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import IconButton from "../components/ui/IconButton";
 import { GlobalStyles } from "../constants/styles";
-import Button from "../components/ui/Button";
 import { useExpense } from "../store/ExpenseContext";
-import { getFormattedDate } from "../util/date";
 import ExpenseForm from "../components/manageExpense/ExpensForm";
 
 function ManageExpenses({ route, navigation }) {
   const selectedId = route.params?.expenseId;
 
-  const { handleRemoveExpense, expenses, setExpenses } = useExpense();
-
-  // useEffect(() => {
-  //   if (selectedExpense) {
-  //     setAmount(selectedExpense.amount.toString()); // Convert to string for TextInput
-  //     setDate(getFormattedDate(selectedExpense.date)); // Adjust date format if needed
-  //     setDescription(selectedExpense.description);
-  //   }
-  // }, [selectedExpense]);
+  const { handleRemoveExpense } = useExpense();
 
   const selectedIndex = route.params.index;
-  const selectedExpense = expenses[selectedIndex];
 
-  function updateExpense() {
-    const newExpenses = [...expenses];
-    const newExpenseObj = {
-      amount: amount,
-      date: new Date(date),
-      description: description,
-    };
-    newExpenses[selectedIndex] = newExpenseObj;
-    setExpenses(newExpenses);
-    navigation.goBack();
-  }
-
-  function cancelHandler() {
+  function goBackHandler() {
     navigation.goBack(); //go back to the screen that open this screen
   }
   function deleteHandler() {
@@ -46,8 +22,7 @@ function ManageExpenses({ route, navigation }) {
   return (
     <View style={styles.outerButtonContainer}>
       <ExpenseForm
-        cancelHandler={cancelHandler}
-        selectedId={selectedId}
+        goBack={goBackHandler}
         selectedIndex={selectedIndex}
       />
       <View style={styles.innerButtonContainer}>
