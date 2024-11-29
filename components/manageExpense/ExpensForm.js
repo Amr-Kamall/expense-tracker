@@ -5,9 +5,12 @@ import Button from "../ui/Button";
 import { useExpense } from "../../store/ExpenseContext";
 import { getFormattedDate } from "../../util/date";
 import { GlobalStyles } from "../../constants/styles";
+import { editExpense, storeData } from "../../util/http";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 function ExpenseForm({ goBack, selectedIndex }) {
-  const { handleAddExpense, expenses, setExpenses } = useExpense();
+  const { handleAddExpense, expenses, setExpenses, error } = useExpense();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // essential
   const [inputValues, setInputValues] = useState({
@@ -36,11 +39,8 @@ function ExpenseForm({ goBack, selectedIndex }) {
       validationErrors.amount = "Please enter a valid amount greater than 0.";
     }
 
-    if (
-      inputValues.date.trim().length === 0 ||
-      isNaN(new Date(inputValues.date).getTime())
-    ) {
-      validationErrors.date = "Please enter a valid date";
+    if (inputValues.date.trim().length === 0) {
+      validationErrors.date = "Please enter a valid dateeee";
     }
 
     if (inputValues.description.trim().length === 0) {
@@ -70,20 +70,26 @@ function ExpenseForm({ goBack, selectedIndex }) {
       return;
     }
 
-    const updatedExpenses = [...expenses];
-    updatedExpenses[selectedIndex] = {
-      amount: +inputValues.amount,
-      date: new Date(inputValues.date),
-      description: inputValues.description,
-      id: Date.now(),
-    };
-
+    // Update the selected expense while retaining its index
+    const updatedExpenses = expenses.map((expense, index) =>
+      index === selectedIndex
+        ? {
+            ...expense, // Retain existing fields
+            amount: +inputValues.amount,
+            date: new Date(inputValues.date),
+            description: inputValues.description,
+          }
+        : expense
+    );
+    //for send edit to firebase
+    const updatedExpense = updatedExpenses[selectedIndex];
+    editExpense(updatedExpense.id, updatedExpense);
     setExpenses(updatedExpenses);
     goBack();
   }
 
   //    -------------------------- adding -------------------------
-  function confirmHandler() {
+  async function confirmHandler() {
     if (!validateInputs()) {
       return;
     }
@@ -92,12 +98,24 @@ function ExpenseForm({ goBack, selectedIndex }) {
       amount: +inputValues.amount,
       date: new Date(inputValues.date),
       description: inputValues.description,
-      id: Date.now(),
     };
 
-    handleAddExpense(newExpense);
-    goBack();
+    try {
+      // Save the new expense in Firebase and get the ID
+      setIsSubmitting(true);
+      const response = await storeData(newExpense);
+      const id = response.data.name; // Firebase returns the generated ID as `name`
+      const newExpenseWithId = { ...newExpense, id }; // Add the Firebase-generated ID
+      setIsSubmitting(false);
+
+      handleAddExpense(newExpenseWithId); // Add to the context with the ID
+      goBack();
+    } catch (error) {
+      console.error("Error adding expense:", error);
+    }
   }
+
+  
 
   return (
     <View style={styles.formContainer}>
@@ -154,11 +172,18 @@ function ExpenseForm({ goBack, selectedIndex }) {
         >
           Cancel
         </Button>
+
         <Button
           additionalStyles={styles.additionalStyles}
           onPress={inUpdatedMood ? updateExpense : confirmHandler}
         >
-          {inUpdatedMood ? "Edit" : "Add"}
+          {inUpdatedMood ? (
+            "Edit"
+          ) : isSubmitting ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            "Add"
+          )}
         </Button>
       </View>
     </View>
@@ -198,6 +223,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: GlobalStyles.colors.error500,
     fontSize: 12,
-    marginLeft:8,
+    marginLeft: 8,
   },
 });

@@ -5,8 +5,10 @@ function ExpensesList({ expenses }) {
   return (
     <FlatList
       data={expenses}
-      renderItem={({ item, index }) => <ExpenseItem dataItem={item} index={index} />}
-      keyExtractor={(item) => item.id}
+      renderItem={({ item, index }) => (
+        <ExpenseItem dataItem={item} index={index} />
+      )}
+      keyExtractor={(item) => item.description}
     />
   );
 }

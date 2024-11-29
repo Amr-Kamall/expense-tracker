@@ -1,48 +1,31 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { fetchData } from "../util/http";
 
 const ExpenseContext = createContext();
 
-const DUMMY_EXPENSES = [
-  {
-    id: "e1",
-    description: "first description",
-    date: new Date("2024-11-20"),
-    amount: 20,
-  },
-  {
-    id: "e2",
-    description: "second description",
-    date: new Date("2024-11-23"),
-    amount: 28,
-  },
-  {
-    id: "e3",
-    description: "third description",
-    date: new Date("2024-1-28"),
-    amount: 10,
-  },
-  {
-    id: "e4",
-    description: "fourth description",
-    date: new Date("2024-1-29"),
-    amount: 9.2,
-  },
-  {
-    id: "e5",
-    description: "fifth description",
-    date: new Date("2024-1-18"),
-    amount: 99.2,
-  },
-  {
-    id: "e6",
-    description: "six description",
-    date: new Date("2024-1-15"),
-    amount: 12.2,
-  },
-];
-
 function ExpenseProvider({ children }) {
-  const [expenses, setExpenses] = useState(DUMMY_EXPENSES);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [expenses, setExpenses] = useState([]);
+  console.log("with id please", expenses); //with id please [{"amount": 22, "date": 2970-01-01T00:00:00.000Z, "description": "Check "}]
+  console.log(error);
+  //get expenses from firebase with help of fetchData() util function
+  useEffect(() => {
+    async function getExpenses() {
+      try {
+        setLoading(true);
+        const expenses = await fetchData();
+        setExpenses(expenses);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        setError("An Error Occurred!");
+      }
+    }
+    getExpenses();
+  }, []);
+
+  // console.log("Current fetchedExpenses state amoory:", expenses);
 
   function handleRemoveExpense(selectedId) {
     setExpenses((expenses) =>
@@ -58,7 +41,14 @@ function ExpenseProvider({ children }) {
 
   return (
     <ExpenseContext.Provider
-      value={{ expenses, handleRemoveExpense, handleAddExpense, setExpenses }}
+      value={{
+        expenses,
+        handleRemoveExpense,
+        handleAddExpense,
+        loading,
+        setExpenses,
+        error,
+      }}
     >
       {children}
     </ExpenseContext.Provider>

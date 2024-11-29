@@ -3,28 +3,27 @@ import IconButton from "../components/ui/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import { useExpense } from "../store/ExpenseContext";
 import ExpenseForm from "../components/manageExpense/ExpensForm";
+import { deleteExpense } from "../util/http";
 
 function ManageExpenses({ route, navigation }) {
   const selectedId = route.params?.expenseId;
 
   const { handleRemoveExpense } = useExpense();
-
   const selectedIndex = route.params.index;
 
   function goBackHandler() {
     navigation.goBack(); //go back to the screen that open this screen
   }
   function deleteHandler() {
+    console.log(selectedId);
     handleRemoveExpense(selectedId);
+    deleteExpense(selectedId);
     navigation.goBack(); //go back to the screen that open this screen
   }
 
   return (
     <View style={styles.outerButtonContainer}>
-      <ExpenseForm
-        goBack={goBackHandler}
-        selectedIndex={selectedIndex}
-      />
+      <ExpenseForm goBack={goBackHandler} selectedIndex={selectedIndex} />
       <View style={styles.innerButtonContainer}>
         <IconButton
           icon="trash"

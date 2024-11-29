@@ -17,6 +17,7 @@ const Stack = createNativeStackNavigator();
 function TabOverViews() {
   return (
     <Tab.Navigator
+      initialRouteName="AllExpenses"
       screenOptions={({ navigation }) => ({
         headerStyle: { backgroundColor: GlobalStyles.colors.primary400 },
         tabBarStyle: { backgroundColor: GlobalStyles.colors.primary400 },

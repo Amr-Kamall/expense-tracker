@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GlobalStyles } from "../constants/styles";
-import { getFormattedDate, getormatedDate } from "../util/date";
+import { getFormattedDate } from "../util/date";
 import { useNavigation } from "@react-navigation/native";
 
 function ExpenseItem({ dataItem, index }) {
@@ -25,8 +25,7 @@ function ExpenseItem({ dataItem, index }) {
           </Text>
         </View>
         <View style={styles.expenseAmountContainer}>
-          <Text style={styles.expenseAmount}>{dataItem.amount}</Text>
-          {/* to Fixed(2)*/}
+          <Text style={styles.expenseAmount}>{dataItem.amount.toFixed(2)}</Text>
         </View>
       </View>
     </Pressable>
@@ -65,7 +64,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  pressedItem:{
-    opacity:0.75
-  }
+  pressedItem: {
+    opacity: 0.75,
+  },
 });
