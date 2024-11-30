@@ -8,8 +8,8 @@ function AllExpenses() {
   if (loading) {
     return <LoadingSpinner size="large" />;
   }
-  if(error){
-    return <ErrorLayout message={error} />
+  if (error) {
+    return <ErrorLayout message={error} />;
   }
 
   return <ExpensesOutput expenses={expenses} expensesPeriod="Total" />;

@@ -7,8 +7,7 @@ function ExpenseProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expenses, setExpenses] = useState([]);
-  console.log("with id please", expenses); //with id please [{"amount": 22, "date": 2970-01-01T00:00:00.000Z, "description": "Check "}]
-  console.log(error);
+  // console.log("with id please", expenses); //with id please [{"amount": 22, "date": 2970-01-01T00:00:00.000Z, "description": "Check "}]
   //get expenses from firebase with help of fetchData() util function
   useEffect(() => {
     async function getExpenses() {

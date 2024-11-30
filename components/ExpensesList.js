@@ -5,9 +5,7 @@ function ExpensesList({ expenses }) {
   return (
     <FlatList
       data={expenses}
-      renderItem={({ item, index }) => (
-        <ExpenseItem dataItem={item} index={index} />
-      )}
+      renderItem={({ item }) => <ExpenseItem dataItem={item} />}
       keyExtractor={(item) => item.description}
     />
   );

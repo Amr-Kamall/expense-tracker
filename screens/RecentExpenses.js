@@ -14,6 +14,7 @@ function RecentExpenses() {
     const expenseDate = new Date(expense.date);
     return expenseDate > date7DaysAgo;
   });
+  console.log("recent expenses:", recentExpenses.length);
 
   return (
     <ExpensesOutput expenses={recentExpenses} expensesPeriod="last 7 days" />

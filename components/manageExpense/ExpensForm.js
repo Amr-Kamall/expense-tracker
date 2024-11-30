@@ -8,8 +8,8 @@ import { GlobalStyles } from "../../constants/styles";
 import { editExpense, storeData } from "../../util/http";
 import LoadingSpinner from "../ui/LoadingSpinner";
 
-function ExpenseForm({ goBack, selectedIndex }) {
-  const { handleAddExpense, expenses, setExpenses, error } = useExpense();
+function ExpenseForm({ goBack, selectedId }) {
+  const { handleAddExpense, expenses, setExpenses } = useExpense();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // essential
@@ -52,7 +52,7 @@ function ExpenseForm({ goBack, selectedIndex }) {
   }
 
   //   ------------------- updating ------------------------
-  const selectedExpense = expenses[selectedIndex];
+  const selectedExpense = expenses.find((expense) => expense.id === selectedId);
   const inUpdatedMood = !!selectedExpense;
 
   useEffect(() => {
@@ -71,8 +71,8 @@ function ExpenseForm({ goBack, selectedIndex }) {
     }
 
     // Update the selected expense while retaining its index
-    const updatedExpenses = expenses.map((expense, index) =>
-      index === selectedIndex
+    const updatedExpenses = expenses.map((expense) =>
+      expense.id === selectedId
         ? {
             ...expense, // Retain existing fields
             amount: +inputValues.amount,
@@ -82,7 +82,9 @@ function ExpenseForm({ goBack, selectedIndex }) {
         : expense
     );
     //for send edit to firebase
-    const updatedExpense = updatedExpenses[selectedIndex];
+    const updatedExpense = updatedExpenses.find(
+      (expense) => expense.id === selectedExpense.id
+    );
     editExpense(updatedExpense.id, updatedExpense);
     setExpenses(updatedExpenses);
     goBack();
@@ -107,15 +109,12 @@ function ExpenseForm({ goBack, selectedIndex }) {
       const id = response.data.name; // Firebase returns the generated ID as `name`
       const newExpenseWithId = { ...newExpense, id }; // Add the Firebase-generated ID
       setIsSubmitting(false);
-
       handleAddExpense(newExpenseWithId); // Add to the context with the ID
       goBack();
     } catch (error) {
       console.error("Error adding expense:", error);
     }
   }
-
-  
 
   return (
     <View style={styles.formContainer}>

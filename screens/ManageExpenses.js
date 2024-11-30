@@ -17,13 +17,19 @@ function ManageExpenses({ route, navigation }) {
   function deleteHandler() {
     console.log(selectedId);
     handleRemoveExpense(selectedId);
+
+    // remove expense from firebase
     deleteExpense(selectedId);
     navigation.goBack(); //go back to the screen that open this screen
   }
 
   return (
     <View style={styles.outerButtonContainer}>
-      <ExpenseForm goBack={goBackHandler} selectedIndex={selectedIndex} />
+      <ExpenseForm
+        goBack={goBackHandler}
+        selectedIndex={selectedIndex}
+        selectedId={selectedId}
+      />
       <View style={styles.innerButtonContainer}>
         <IconButton
           icon="trash"
